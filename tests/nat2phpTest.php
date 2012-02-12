@@ -8,7 +8,7 @@ function pps(&$x,$default=''){if(empty($x))return $default; else return $x;}
 class nat2php_test extends PHPUnit_Framework_TestCase {
 	
 	function &createParser(){
-        $parser = new parser();
+        $parser = new nat_parser();
         return $parser ->newOp2('- +',3)
 				->newOp2('* /',5)
 				->newOp2('|| && >> <<',4)
@@ -26,7 +26,7 @@ class nat2php_test extends PHPUnit_Framework_TestCase {
 	}
 	
 	function &createParser2(){
-        $parser = new parser();
+        $parser = new nat_parser();
         return $parser 
         	->newOp2('- +',3)
 			->newOp2('- +',3)
@@ -67,7 +67,7 @@ class nat2php_test extends PHPUnit_Framework_TestCase {
 	}
 	
     function testCreate_parser() {
-        $parser = new parser();
+        $parser = new nat_parser();
         $this->assertFalse(empty($parser));
 	}
     function testCreate_parser_initCalc() {

@@ -24,6 +24,7 @@ class operand {
         , $handler='' // функция
 		, $pos	 // позиция курсора
 		, $prio	// приоритет операции для операций
+        , $orig //
 //		, $unop // признак унарной операции для унарных операций
 		;
 		
@@ -49,7 +50,7 @@ class operand {
  * @author ksnk
  *
  */
-class parser {
+class nat_parser {
 	
 	protected 
 		$t_conv=array(
