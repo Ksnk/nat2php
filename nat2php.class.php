@@ -79,9 +79,7 @@ class nat_parser {
 	 */  
 		, $curlex=0
 		
-	/**
-	 * текущая операция
-	 */  
+	 /** @var operand - текущая операция */
 		, $op=null
 		
 	/**
@@ -141,8 +139,6 @@ class nat_parser {
 	 #### синтаксические ошибки скрипта
 		# wtf
 			,'wtf'=>'wtf'
-		# операция на месте операнда
-			,'undefined operation'=>'undefined operation'
 		# нет закрывающей скобки
 			,'closed brackets missed'=>'closed brackets missed'
 		# синтаксическая ошибка - много операций и мало операндов
@@ -192,13 +188,14 @@ class nat_parser {
 		if(!empty($options)){
 			$this->options=array_merge($this->options,$options);
 		}	
-	}	
+	}
 
-	/**
-	 * поддержка вызова функции
-	 * @param operand $op1
-	 * @param operand $op2
-	 */
+    /**
+     * поддержка вызова функции
+     * @param operand $op1
+     * @param operand $op2
+     * @return \operand
+     */
 	function function_callstack($op1,$op2){
 		//вырезка из массива
 		if($op1->type=='TYPE_OBJECT'){
@@ -209,12 +206,13 @@ class nat_parser {
 			$this->error('have no function '.$op1);
 		return $op1;
 	}
-	
-	/**
-	 * вырезка из массива
-	 * @param operand $op1
-	 * @param operand $op2
-	 */ 
+
+    /**
+     * вырезка из массива
+     * @param operand $op1
+     * @param operand $op2
+     * @return \operand
+     */
 	function function_scratch($op1,$op2){
 		//вырезка из массива
 		$this->to('I',$op1);
@@ -247,12 +245,14 @@ class nat_parser {
 		$op=$this->oper($value,'TYPE_NONE',$pos);
 		$op->prio=$prio;
 		return $op;
-	}	
-	
-	/**
-	 * getter-setter для стека операндов
-	 * @param $op
-	 */
+	}
+
+    /**
+     * getter-setter для стека операндов
+     * @param $op
+     * @param string $type
+     * @return \operand
+     */
 	protected function &pushOp($op,$type='TYPE_OPERAND'){
 		if(is_string ($op)){
 			$op=$this->oper($op,$type);
@@ -303,42 +303,51 @@ class nat_parser {
 				$this->cake[$ww][]=$op;
 		}
 		return $this;
-	}	
-	
-	/**
-	 * определить функцию с параметрами
-	 * @param $op - имя операции
-	 * @param $phpeq - PHP эквивалент - паттерн для sprintf'а с одним параметром
-	 */	
+	}
+
+    /**
+     * определить функцию с параметрами
+     * @param $op - имя операции
+     * @param string $phpeq - PHP эквивалент - паттерн для sprintf'а с одним параметром
+     * @param string $types
+     * @return $this
+     */
 	function &newFunc($op,$phpeq='~~~(%s)',$types='*'){
 		$this->func[$op]=$this->oper(str_replace('~~~',$op,$phpeq));
 		return $this;
 		//return $this->new_Op($op,10,&$this->func,pps($phpeq,'~~~(%s)'),$types);
-	}	
-	
-	/**
-	 * определить унарную операциию
-	 * @param $op - имя операции
-	 * @param $phpeq - PHP эквивалент - паттерн для sprintf'а с одним параметром
-	 */	
+	}
+
+    /**
+     * определить унарную операциию
+     * @param $op - имя операции
+     * @param $phpeq - PHP эквивалент - паттерн для sprintf'а с одним параметром
+     * @param string $types
+     * @return $this
+     */
 	function &newOp1($op,$phpeq=null,$types='*'){
 		return $this->new_Op($op,10,&$this->unop,pps($phpeq,'~~~(%s)'),$types);
-	}	
-	
-	/**
-	 * определить унарную операциию - суффикс
-	 * @param $op - имя операции
-	 * @param $phpeq - PHP эквивалент - паттерн для spritf'а с одним параметром
-	 */	
+	}
+
+    /**
+     * определить унарную операциию - суффикс
+     * @param $op - имя операции
+     * @param $phpeq - PHP эквивалент - паттерн для spritf'а с одним параметром
+     * @param int $prio
+     * @param string $types
+     * @return $this
+     */
 	function &newOpS($op,$phpeq=null,$prio=10,$types='*'){
 		return $this->new_Op($op,$prio,&$this->suffop,pps($phpeq,'%s~~~'),$types);
-	}	
-	
-	/**
-	 * определить операнд
-	 * @param $op - имя операнда
-	 * @param $phpeq - PHP эквивалент 
-	 */	
+	}
+
+    /**
+     * определить операнд
+     * @param $op - имя операнда
+     * @param $phpeq - PHP эквивалент
+     * @param string $type
+     * @return $this
+     */
 	function &newOpr($op,$phpeq=null,$type='TYPE_OPERAND'){
 		if(strpos($op, ' ')!==false){
 			foreach(explode(' ',$op) as $oop)
@@ -347,25 +356,28 @@ class nat_parser {
 		}
 		$this->ids[$op]=$this->oper($phpeq,$type);
 		return $this;
-	}	
-	
-	/**
-	 * определить бинарную операциию
-	 * @param $op - имя операции
-	 * @param $prio - приоритет операции
-	 * @param $phpeq - PHP эквивалент - паттерн для spritf'а с одним параметром
-	 */	
+	}
+
+    /**
+     * определить бинарную операциию
+     * @param $op - имя операции
+     * @param int $prio - приоритет операции
+     * @param $phpeq - PHP эквивалент - паттерн для spritf'а с одним параметром
+     * @param string $types
+     * @return $this
+     */
 	function &newOp2($op,$prio=10,$phpeq=null,$types='*'){
 		return $this->new_Op($op,$prio,&$this->binop,pps($phpeq,'(%s)~~~(%s)'),$types);
-	}	
+	}
 
-	/**
-	 * Выдать регулярку, нарезающую текст на мелкое количество лексем
-	 * пример для простого формульного калькулятора 
-	 * + потенция на парсер SQL конструкций
-	 * @param array $types установка массива типов лексем 
-	 * 	для автоматического парсинга
-	 */
+    /**
+     * Выдать регулярку, нарезающую текст на мелкое количество лексем
+     * пример для простого формульного калькулятора
+     * + потенция на парсер SQL конструкций
+     * @param array $types установка массива типов лексем
+     *    для автоматического парсинга
+     * @return string
+     */
 	protected function get_reg(&$types){
 /**
  * массив типов, определенных регуляркой. Повязан на суб-номер в регулярке
@@ -442,12 +454,13 @@ class nat_parser {
 			$this->lex[]=$this->oper("\x1b",'TYPE_EOF',$curptr);
 		}
 	}
-	
-	/**
-	 * сгенерировать сообщение об ошибке и снабдить его координатами
-	 * @param $msgId
-	 * @param $lex
-	 */
+
+    /**
+     * сгенерировать сообщение об ошибке и снабдить его координатами
+     * @param $msgId
+     * @param operand $lex
+     * @throws CompilationException
+     */
 	protected function error($msgId,$lex=null){
 		$mess=pps($this->error_msg[$msgId],$msgId);
 		if(is_null($lex)){
@@ -563,8 +576,8 @@ class nat_parser {
 					} else {
 						$this->calc($this->op);
 						$place=1;
-						break;
 					}
+                    break;
 				case 'TYPE_COMMA':
 					if ($this->op->val=='(') {
 						$this->newop('_stack_');
@@ -685,12 +698,13 @@ class nat_parser {
 		}
 		return $res->val;	
 	}
-	
-	/**
-	 * свертка(выполнение) приоритетных операций, выкладывание на стек новой операции 
-	 * @param $op
-	 * @param $unop
-	 */
+
+    /**
+     * свертка(выполнение) приоритетных операций, выкладывание на стек новой операции
+     * @param $last
+     * @internal param $op
+     * @internal param $unop
+     */
 	protected function execute($last){
 		//echo 'exec "'.$last[0].'" ';
 		if(empty($last->unop)) 
